@@ -169,7 +169,7 @@ with st.sidebar:
         
         # WhatsApp Finalisation
         msg = f"Bonjour ! Voici ma commande pour {zone} ({horaire}) :\n" + "\n".join(summary_list) + f"\n\nTotal estimé : {grand_total+6:.2f}€"
-        wa_url = f"https://wa.me/33600000000?text={urllib.parse.quote(msg)}"
+        wa_url = f"https://wa.me/336660917216?text={urllib.parse.quote(msg)}"
         
         st.markdown(f"""
             <a href="{wa_url}" target="_blank" style="text-decoration:none;">

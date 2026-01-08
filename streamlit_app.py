@@ -1,4 +1,5 @@
 import streamlit as st
+import urllib.parse
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Les Halles chez Vous", page_icon="🛍️", layout="centered")
@@ -65,3 +66,45 @@ with st.sidebar:
             for pid, qty in st.session_state.cart.items():
                 msg += f"- {qty}x {PRODUCTS[pid]['name']}%0A"
             st.markdown(f"[Finaliser sur WhatsApp](https://wa.me/?text={msg})")
+
+with st.sidebar:
+    st.header("🛒 Mon Panier")
+    if not st.session_state.cart:
+        st.write("Votre panier est vide")
+    else:
+        total = 0
+        items_list = []
+        for pid, qty in st.session_state.cart.items():
+            p = PRODUCTS[pid]
+            line_total = qty * p['price']
+            st.write(f"**{qty}x {p['name']}**")
+            st.write(f"{line_total:.2f}€")
+            total += line_total
+            items_list.append(f"- {qty}x {p['name']} ({p['shop']})")
+        
+        st.divider()
+        delivery = 6.0
+        st.write(f"Livraison : {delivery:.2f}€")
+        st.subheader(f"Total : {total + delivery:.2f}€")
+        
+        # --- GÉNÉRATION DU MESSAGE PROPRE ---
+        base_msg = "Salut ! Voici ma commande pour la tournée :\n\n"
+        base_msg += "\n".join(items_list)
+        base_msg += f"\n\nTotal estimé : {total + delivery:.2f}€"
+        
+        # Encodage magique pour que WhatsApp comprenne tout (espaces, emojis, retours ligne)
+        encoded_msg = urllib.parse.quote(base_msg)
+        whatsapp_url = f"https://wa.me/33660917216?text={encoded_msg}" # Remplace les X par ton numéro
+        
+        # Affichage d'un gros bouton visuel
+        st.markdown(f"""
+            <a href="{whatsapp_url}" target="_blank" style="text-decoration: none;">
+                <div style="background-color: #25D366; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold;">
+                    🚀 Envoyer à mon Personal Shopper
+                </div>
+            </a>
+        """, unsafe_allow_html=True)
+        
+        if st.button("Vider le panier"):
+            st.session_state.cart = {}
+            st.rerun()

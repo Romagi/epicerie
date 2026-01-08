@@ -1,187 +1,190 @@
 import streamlit as st
 import urllib.parse
 
-# --- CONFIGURATION ---
+# --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="L'Épicerie des Halles", page_icon="🛍️", layout="wide")
 
-# --- CSS : NORMES WCAG & DESIGN HYBRIDE (SIDEBAR FONCÉE / CORPS CLAIR) ---
+# --- CSS PROFESSIONNEL (CONTRASTE ÉLEVÉ & UI QUALI) ---
 st.markdown("""
 <style>
-    /* Variables de couleurs */
+    /* 1. Reset & Fond Global */
     :root {
         --rouge-basque: #980000;
         --fond-creme: #FDFCF8;
-        --sidebar-dark: #111827; /* Anthracite W3C compliant */
-        --texte-noir: #000000;
-        --blanc-pur: #FFFFFF;
+        --sidebar-bg: #111827;
+        --texte-corps: #000000;
     }
-
-    /* Fond du corps de page */
+    
     .stApp {
         background-color: var(--fond-creme);
     }
 
-    /* Sidebar : Style Foncé & Contraste Élevé */
+    /* 2. Sidebar (Panier) - Contraste Maximal */
     [data-testid="stSidebar"] {
-        background-color: var(--sidebar-dark) !important;
-        color: var(--blanc-pur) !important;
+        background-color: var(--sidebar-bg) !important;
     }
-    
-    /* Forcer le texte blanc dans la sidebar */
-    [data-testid="stSidebar"] .stMarkdown, 
-    [data-testid="stSidebar"] p, 
-    [data-testid="stSidebar"] h1, 
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] span {
-        color: var(--blanc-pur) !important;
+    [data-testid="stSidebar"] * {
+        color: #FFFFFF !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: #374151 !important;
     }
 
-    /* Titre Principal Corps de Page */
+    /* 3. Typographie Corps de Page (Humain-Friendly) */
     .main-header {
-        font-family: 'Helvetica', sans-serif;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         color: var(--rouge-basque) !important;
         text-align: center;
-        font-size: 2.5rem;
+        font-size: 2.8rem;
         font-weight: 900;
+        letter-spacing: -1px;
+    }
+    
+    .section-label {
+        color: var(--texte-corps) !important;
+        font-weight: 800;
         margin-bottom: 5px;
     }
 
-    /* Cartes Produits : Contraste pour humains */
-    .product-name {
-        color: var(--texte-noir) !important;
-        font-weight: 700;
-        font-size: 1.2rem;
-    }
-
-    .shop-name {
-        color: #064E3B !important; /* Vert sombre pour lisibilité */
-        font-weight: 800;
+    /* 4. Cartes Produits & Descriptions */
+    .shop-tag {
+        color: #065F46 !important; /* Vert foncé pro */
+        font-weight: 900;
         font-size: 0.8rem;
         text-transform: uppercase;
     }
-
-    /* Boutons Ajouter : Noir sur Blanc pour un contraste max */
-    div.stButton > button {
-        background-color: var(--texte-noir) !important;
-        color: var(--blanc-pur) !important;
-        border: 2px solid var(--texte-noir);
-        font-weight: 900 !important;
-        border-radius: 4px;
-        transition: 0.2s;
+    
+    .product-title {
+        color: var(--texte-corps) !important;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 2px 0;
     }
     
-    div.stButton > button:hover {
-        background-color: #333333 !important;
-        border-color: #333333 !important;
+    .product-price {
+        color: var(--texte-corps) !important;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+    
+    .product-unit {
+        color: #4B5563 !important;
+        font-size: 0.9rem;
     }
 
-    /* Bulle Flottante Mobile */
-    .floating-cart {
+    /* 5. Boutons (W3C Compliant) */
+    div.stButton > button {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+        border: none;
+        font-weight: 900 !important;
+        padding: 10px 20px;
+        border-radius: 4px;
+        width: 100%;
+    }
+
+    /* 6. Bulle Mobile Fixe */
+    .floating-badge {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 20px;
+        right: 20px;
         background-color: var(--rouge-basque);
         color: white !important;
-        padding: 14px 24px;
-        border-radius: 8px;
+        padding: 12px 20px;
         font-weight: 900;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        z-index: 1000;
+        border-radius: 4px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-
-    /* Input Fields (Zones/Créneaux) */
-    .stSelectbox label {
-        color: var(--texte-noir) !important;
-        font-weight: 700 !important;
-    }
-
 </style>
 """, unsafe_allow_html=True)
 
-# --- INITIALISATION ---
+# --- BASE DE DONNÉES PRODUITS ---
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
 
 PRODUCTS = {
     "p1": {"name": "Jambon Blanc Supérieur", "shop": "Boucherie des Familles", "price": 4.50, "unit": "2 tranches", "img": "🍖"},
     "p2": {"name": "Côte de Bœuf Maturée", "shop": "Boucherie des Familles", "price": 32.00, "unit": "env. 1kg", "img": "🥩"},
-    "p3": {"name": "Boîte de 6 Choux", "shop": "Maison Dune", "price": 16.00, "unit": "boîte", "img": "🧁"},
+    "p3": {"name": "Boîte de 6 Choux", "shop": "Maison Dune", "price": 16.00, "unit": "la boîte", "img": "🧁"},
     "p4": {"name": "Gâteau Basque", "shop": "Maison Adam", "price": 14.00, "unit": "4 parts", "img": "🥧"},
     "p5": {"name": "Ossau-Iraty d'Estive", "shop": "Fromagerie Arradoy", "price": 12.50, "unit": "500g", "img": "🧀"},
     "p6": {"name": "Filet de Merlu de Ligne", "shop": "Poissonnerie Fagoaga", "price": 18.00, "unit": "2 pers.", "img": "🐟"},
-    "p7": {"name": "Panier Maraîcher", "shop": "Primeur des Halles", "price": 22.00, "unit": "3kg env.", "img": "🥦"},
+    "p7": {"name": "Le Panier Maraîcher", "shop": "Primeur des Halles", "price": 22.00, "unit": "env. 3kg", "img": "🥦"},
 }
 
-# --- HEADER ---
+# --- HEADER & LOGISTIQUE ---
 st.markdown('<div class="main-header">L\'Épicerie des Halles</div>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; font-weight:700; color:#4B5563;'>Sélection premium livrée chez vous.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#000; font-weight:600;'>Sélection d'artisans locaux, livrée chez vous.</p>", unsafe_allow_html=True)
 
-# --- LAYOUT PRINCIPAL ---
 st.write("---")
-c_zone, c_time = st.columns(2)
-with c_zone:
+c1, c2 = st.columns(2)
+with c1:
     zone = st.selectbox("Livraison à :", ["Ciboure", "St-Jean-de-Luz", "Guéthary", "Ahetze"])
-with c_time:
+with c2:
     horaire = st.selectbox("Créneau :", ["Mardi matin (8h-10h)", "Vendredi soir (17h-19h)"])
-
 st.write("")
 
-# --- GRILLE DE PRODUITS ---
+# --- AFFICHAGE DU CATALOGUE ---
 for pid, p in PRODUCTS.items():
     with st.container():
-        col_img, col_info, col_btn = st.columns([0.8, 3, 1.5])
+        # Utilisation de colonnes proportionnelles pour l'UI
+        col_img, col_info, col_btn = st.columns([0.7, 3, 1.3])
+        
         with col_img:
-            st.markdown(f"## {p['img']}")
+            st.markdown(f"<h1 style='margin:0;'>{p['img']}</h1>", unsafe_allow_html=True)
+            
         with col_info:
-            st.markdown(f"<span class='shop-name'>{p['shop']}</span>", unsafe_allow_html=True)
-            st.markdown(f"<div class='product-name'>{p['name']}</div>", unsafe_allow_html=True)
-            st.markdown(f"<b style='font-size:1.1rem;'>{p['price']:.2f}€</b> <small>({p['unit']})</small>", unsafe_allow_html=True)
+            st.markdown(f"<span class='shop-tag'>{p['shop']}</span>", unsafe_allow_html=True)
+            st.markdown(f"<div class='product-title'>{p['name']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<span class='product-price'>{p['price']:.2f}€</span> <span class='product-unit'>({p['unit']})</span>", unsafe_allow_html=True)
+            
         with col_btn:
-            st.write("") # Alignement
-            if st.button("AJOUTER", key=pid, use_container_width=True):
+            st.write("###") # Alignement vertical
+            if st.button("AJOUTER", key=pid):
                 st.session_state.cart[pid] = st.session_state.cart.get(pid, 0) + 1
                 st.rerun()
         st.write("---")
 
-# --- PANIER MOBILE (BULLE) ---
-total_qty = sum(st.session_state.cart.values())
-if total_qty > 0:
-    st.markdown(f'<div class="floating-cart">🛒 {total_qty} ARTICLES</div>', unsafe_allow_html=True)
-
-# --- SIDEBAR (FONCÉE) ---
+# --- PANIER DYNAMIQUE (SIDEBAR) ---
 with st.sidebar:
-    st.markdown("<h1 style='margin-bottom:20px;'>🛒 Mon Panier</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin-bottom:20px;'>🛒 Votre Panier</h2>", unsafe_allow_html=True)
     
     if not st.session_state.cart:
-        st.write("Votre panier est vide")
+        st.write("Le panier est vide")
     else:
         grand_total = 0
-        items_text = []
+        summary_list = []
         for pid, qty in st.session_state.cart.items():
             p = PRODUCTS[pid]
             line_total = qty * p['price']
             grand_total += line_total
             st.markdown(f"**{qty}x {p['name']}**")
-            st.markdown(f"<span style='color:#10B981;'>{line_total:.2f}€</span>", unsafe_allow_html=True)
-            items_text.append(f"- {qty}x {p['name']} ({p['shop']})")
+            st.markdown(f"<span style='color:#10B981; font-weight:bold;'>{line_total:.2f}€</span>", unsafe_allow_html=True)
+            summary_list.append(f"- {qty}x {p['name']} ({p['shop']})")
             st.write("---")
+            
+        st.write(f"Livraison : 6.00€")
+        st.markdown(f"### TOTAL : {grand_total + 6:.2f}€")
         
-        st.markdown(f"Livraison : 6.00€")
-        st.markdown(f"## TOTAL : {grand_total + 6:.2f}€")
-        
-        # WhatsApp Message
-        wa_msg = f"Bonjour ! Commande pour {zone} ({horaire}) :\n" + "\n".join(items_text) + f"\n\nTotal : {grand_total+6:.2f}€"
-        wa_url = f"https://wa.me/33600000000?text={urllib.parse.quote(wa_msg)}" # Remplace par ton tel
+        # WhatsApp Finalisation
+        msg = f"Bonjour ! Voici ma commande pour {zone} ({horaire}) :\n" + "\n".join(summary_list) + f"\n\nTotal estimé : {grand_total+6:.2f}€"
+        wa_url = f"https://wa.me/33600000000?text={urllib.parse.quote(msg)}"
         
         st.markdown(f"""
             <a href="{wa_url}" target="_blank" style="text-decoration:none;">
-                <div style="background-color:#22C55E; color:white; padding:18px; border-radius:8px; text-align:center; font-weight:900; font-size:1.1rem; margin-top:20px;">
-                    ✅ COMMANDER VIA WHATSAPP
+                <div style="background-color:#22C55E; color:white; padding:15px; border-radius:4px; text-align:center; font-weight:900; font-size:1rem; border: 1px solid #16a34a;">
+                    ✅ COMMANDER SUR WHATSAPP
                 </div>
             </a>
         """, unsafe_allow_html=True)
         
         st.write("")
-        if st.button("Vider le panier", use_container_width=True):
+        if st.button("VIDER LE PANIER"):
             st.session_state.cart = {}
             st.rerun()
+
+# --- BADGE MOBILE ---
+total_q = sum(st.session_state.cart.values())
+if total_q > 0:
+    st.markdown(f'<div class="floating-badge">🛒 {total_q} ARTICLE{"S" if total_q > 1 else ""}</div>', unsafe_allow_html=True)

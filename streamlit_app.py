@@ -45,27 +45,6 @@ for pid, p in PRODUCTS.items():
             st.toast(f"Ajouté : {p['name']}")
 
 # --- PANIER (SIDEBAR) ---
-with st.sidebar:
-    st.header("🛒 Mon Panier")
-    if not st.session_state.cart:
-        st.write("Vide")
-    else:
-        total = 0
-        for pid, qty in st.session_state.cart.items():
-            p = PRODUCTS[pid]
-            st.write(f"{qty}x {p['name']} : {qty*p['price']:.2f}€")
-            total += qty*p['price']
-        
-        st.write("---")
-        delivery = 6.0
-        st.write(f"Livraison : {delivery}€")
-        st.subheader(f"Total : {total + delivery:.2f}€")
-        
-        if st.button("Valider la commande"):
-            msg = "Salut ! Voici ma commande :%0A"
-            for pid, qty in st.session_state.cart.items():
-                msg += f"- {qty}x {PRODUCTS[pid]['name']}%0A"
-            st.markdown(f"[Finaliser sur WhatsApp](https://wa.me/?text={msg})")
 
 with st.sidebar:
     st.header("🛒 Mon Panier")

@@ -9,21 +9,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS PROFESSIONNEL & ACCESSIBLE ---
+# --- CSS PROFESSIONNEL & ACCESSIBLE (NORMES WCAG) ---
 st.markdown("""
 <style>
     :root {
         --rouge-basque: #C41E3A;
         --fond-creme: #FDFCF8;
-        --texte-noir: #111827;
+        --texte-noir: #000000;
         --sidebar-bg: #1F2937;
     }
     
     .stApp { background-color: var(--fond-creme); }
 
+    /* Sidebar - Contraste Maximal */
     [data-testid="stSidebar"] { background: var(--sidebar-bg) !important; }
     [data-testid="stSidebar"] * { color: #FFFFFF !important; }
 
+    /* Titre & Textes */
     .hero-title {
         font-family: 'Georgia', serif;
         color: var(--rouge-basque);
@@ -33,12 +35,14 @@ st.markdown("""
         margin-bottom: 5px;
     }
     
-    .product-name { color: #000000 !important; font-weight: 800 !important; font-size: 1.15rem !important; }
+    /* Correction du texte invisible : Noir sur Crème */
+    .product-name { color: var(--texte-noir) !important; font-weight: 800 !important; font-size: 1.15rem !important; }
     .product-desc { color: #374151 !important; font-size: 0.9rem !important; }
+    .product-meta { color: var(--texte-noir) !important; font-weight: 600; font-size: 0.95rem; }
 
-    /* Boutons et Contrôles */
+    /* Boutons Ajouter & Quantités */
     div.stButton > button {
-        background-color: #000000 !important;
+        background-color: var(--texte-noir) !important;
         color: #FFFFFF !important;
         border: none !important;
         font-weight: 900 !important;
@@ -47,18 +51,17 @@ st.markdown("""
         height: 2.8rem;
     }
 
-    /* Style spécifique pour le compteur de quantité */
     .qty-display {
         display: flex;
         align-items: center;
         justify-content: center;
         background: white;
-        border: 2px solid #000;
+        border: 2px solid var(--texte-noir);
         border-radius: 4px;
         height: 2.8rem;
         font-weight: 900;
         font-size: 1.2rem;
-        color: #000;
+        color: var(--texte-noir) !important;
     }
 
     /* Badge Flottant Mobile */
@@ -74,7 +77,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- DONNÉES PRODUITS ---
+# --- INITIALISATION ---
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
 
@@ -90,17 +93,25 @@ PRODUCTS = {
     "p9": {"name": "Confiture Cerise Noire", "shop": "Maison Adam", "price": 6.80, "unit": "pot 350g", "img": "🍒", "description": "Idéale avec le fromage."},
 }
 
-# --- HEADER ---
+# --- HEADER & LOGISTIQUE (RÉINTÉGRÉ) ---
 st.markdown('<div class="hero-title">🛍️ L\'Épicerie des Halles</div>', unsafe_allow_html=True)
+st.write("")
+
+c1, c2 = st.columns(2)
+with c1:
+    zone = st.selectbox("📍 Commune de livraison", ["Ciboure", "Saint-Jean-de-Luz", "Guéthary", "Ahetze", "Bidart"], index=1)
+with c2:
+    horaire = st.selectbox("🕐 Créneau souhaité", ["Mardi matin (8h-10h)", "Vendredi matin (8h-10h)", "Vendredi soir (17h-19h)"])
+
 st.write("---")
 
 # --- CATALOGUE ---
 categories = {
-    "🥩 Boucherie": ["p1", "p2"],
-    "🧁 Pâtisserie": ["p3", "p4", "p9"],
+    "🥩 Boucherie & Charcuterie": ["p1", "p2"],
+    "🧁 Pâtisserie & Douceurs": ["p3", "p4", "p9"],
     "🧀 Fromagerie": ["p5"],
-    "🐟 Poissonnerie": ["p6"],
-    "🥬 Primeur": ["p7", "p8"]
+    "🐟 Marée Fraîche": ["p6"],
+    "🥬 Fruits & Légumes": ["p7", "p8"]
 }
 
 for cat, pids in categories.items():
@@ -108,7 +119,6 @@ for cat, pids in categories.items():
         for pid in pids:
             p = PRODUCTS[pid]
             current_qty = st.session_state.cart.get(pid, 0)
-            
             c_img, c_info, c_btn = st.columns([0.6, 3, 1.3])
             
             with c_img:
@@ -118,23 +128,21 @@ for cat, pids in categories.items():
                 st.markdown(f"<div style='color:#065F46; font-weight:900; font-size:0.75rem; text-transform:uppercase;'>{p['shop']}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='product-name'>{p['name']}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='product-desc'>{p['description']}</div>", unsafe_allow_html=True)
-                st.markdown(f"<b style='color:var(--rouge-basque); font-size:1.1rem;'>{p['price']:.2f}€</b> <small>({p['unit']})</small>", unsafe_allow_html=True)
+                # Correction contraste ici
+                st.markdown(f"<div class='product-meta'><span style='color:var(--rouge-basque); font-size:1.1rem;'>{p['price']:.2f}€</span> ({p['unit']})</div>", unsafe_allow_html=True)
             
             with c_btn:
-                st.write("##") # Calage
+                st.write("###")
                 if current_qty == 0:
-                    # État 1 : Bouton d'ajout simple
                     if st.button("AJOUTER", key=f"add_{pid}"):
                         st.session_state.cart[pid] = 1
                         st.rerun()
                 else:
-                    # État 2 : Outil de gestion des quantités
                     q_col1, q_col2, q_col3 = st.columns([1, 1.2, 1])
                     with q_col1:
                         if st.button("—", key=f"min_{pid}"):
                             st.session_state.cart[pid] -= 1
-                            if st.session_state.cart[pid] <= 0:
-                                del st.session_state.cart[pid]
+                            if st.session_state.cart[pid] <= 0: del st.session_state.cart[pid]
                             st.rerun()
                     with q_col2:
                         st.markdown(f"<div class='qty-display'>{current_qty}</div>", unsafe_allow_html=True)
@@ -166,11 +174,16 @@ with st.sidebar:
         st.markdown(f"<div style='background:var(--rouge-basque); padding:15px; border-radius:8px; text-align:center; font-size:1.3rem; font-weight:900;'>TOTAL : {total_final:.2f}€</div>", unsafe_allow_html=True)
         
         # WhatsApp
-        msg = f"Bonjour ! Commande pour {zone if 'zone' in locals() else 'St-Jean'} :\n" + "\n".join(summary_txt) + f"\n\nTotal : {total_final:.2f}€"
-        wa_url = f"https://wa.me/33660917216?text={urllib.parse.quote(msg)}"
+        message = f"Bonjour ! Commande pour {zone} ({horaire}) :\n" + "\n".join(summary_txt) + f"\n\nTotal : {total_final:.2f}€"
+        wa_url = f"https://wa.me/33660917216?text={urllib.parse.quote(message)}"
         st.markdown(f'<a href="{wa_url}" target="_blank" style="text-decoration:none;"><div style="background-color:#22C55E; color:white; padding:18px; border-radius:8px; text-align:center; font-weight:900; margin-top:20px;">✅ VALIDER SUR WHATSAPP</div></a>', unsafe_allow_html=True)
+        
+        st.write("")
+        if st.button("🗑️ Vider le panier", use_container_width=True):
+            st.session_state.cart = {}
+            st.rerun()
 
 # --- BADGE MOBILE ---
 total_q = sum(st.session_state.cart.values())
 if total_q > 0:
-    st.markdown(f'<div class="floating-cart">🛒 {total_q} ARTICLES<br><small style="font-weight:normal; font-size:0.7rem;">Voir menu ↖️</small></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="floating-cart">🛒 {total_q} ARTICLES<br><small style="font-weight:normal; font-size:0.7rem;">Ouvrir menu ↖️</small></div>', unsafe_allow_html=True)

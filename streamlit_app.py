@@ -444,7 +444,7 @@ Je souhaite commander :
 
 Merci de confirmer la disponibilité !"""
         
-        wa_url = f"https://wa.me/336660917216?text={urllib.parse.quote(message)}"
+        wa_url = f"https://wa.me/33660917216?text={urllib.parse.quote(message)}"
         
         st.markdown(f"""
         <a href="{wa_url}" target="_blank" style="text-decoration:none;">

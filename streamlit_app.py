@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS PROFESSIONNEL & ACCESSIBLE (NORMES WCAG) ---
+# --- CSS PROFESSIONNEL (CONTRASTE TOTAL) ---
 st.markdown("""
 <style>
     :root {
@@ -21,34 +21,37 @@ st.markdown("""
     
     .stApp { background-color: var(--fond-creme); }
 
+    /* Correction des LABELS (Commune, Créneau) */
+    .stSelectbox label p {
+        color: var(--texte-noir) !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+    }
+
     /* Sidebar - Contraste Maximal */
     [data-testid="stSidebar"] { background: var(--sidebar-bg) !important; }
     [data-testid="stSidebar"] * { color: #FFFFFF !important; }
 
-    /* Titre & Textes */
+    /* Titre & Textes Corps de Page */
     .hero-title {
         font-family: 'Georgia', serif;
         color: var(--rouge-basque);
         text-align: center;
         font-size: 2.5rem;
         font-weight: 800;
-        margin-bottom: 5px;
     }
     
-    /* Correction du texte invisible : Noir sur Crème */
-    .product-name { color: var(--texte-noir) !important; font-weight: 800 !important; font-size: 1.15rem !important; }
-    .product-desc { color: #374151 !important; font-size: 0.9rem !important; }
-    .product-meta { color: var(--texte-noir) !important; font-weight: 600; font-size: 0.95rem; }
+    .product-name { color: var(--texte-noir) !important; font-weight: 800 !important; }
+    .product-desc { color: #374151 !important; }
+    .product-meta { color: var(--texte-noir) !important; font-weight: 600; }
 
-    /* Boutons Ajouter & Quantités */
+    /* Boutons et Quantités */
     div.stButton > button {
         background-color: var(--texte-noir) !important;
         color: #FFFFFF !important;
         border: none !important;
         font-weight: 900 !important;
         text-transform: uppercase;
-        width: 100%;
-        height: 2.8rem;
     }
 
     .qty-display {
@@ -64,14 +67,20 @@ st.markdown("""
         color: var(--texte-noir) !important;
     }
 
-    /* Badge Flottant Mobile */
+    /* Badge Flottant Mobile - TEXTE BLANC SUR FOND ROUGE (LISIBLE) */
     @media (max-width: 767px) {
         .floating-cart {
             position: fixed; bottom: 25px; right: 25px;
-            background: var(--rouge-basque); color: white !important;
+            background: var(--rouge-basque); 
+            color: #FFFFFF !important; /* Forcé blanc car le fond est rouge foncé */
             padding: 15px 22px; border-radius: 12px;
             font-weight: 900; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             z-index: 9999; border: 2px solid white; text-align: center;
+        }
+        .floating-cart small {
+            color: #EEEEEE !important;
+            display: block;
+            font-size: 0.7rem;
         }
     }
 </style>
@@ -81,6 +90,7 @@ st.markdown("""
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
 
+# --- DONNÉES ---
 PRODUCTS = {
     "p1": {"name": "Jambon Blanc Supérieur", "shop": "Boucherie des Familles", "price": 4.50, "unit": "2 tranches", "img": "🍖", "description": "Cuit à l'ancienne, sans additifs."},
     "p2": {"name": "Côte de Bœuf Maturée", "shop": "Boucherie des Familles", "price": 32.00, "unit": "env. 1kg", "img": "🥩", "description": "Maturée 28 jours, tendreté exceptionnelle."},
@@ -93,14 +103,15 @@ PRODUCTS = {
     "p9": {"name": "Confiture Cerise Noire", "shop": "Maison Adam", "price": 6.80, "unit": "pot 350g", "img": "🍒", "description": "Idéale avec le fromage."},
 }
 
-# --- HEADER & LOGISTIQUE (RÉINTÉGRÉ) ---
+# --- HEADER & LOGISTIQUE ---
 st.markdown('<div class="hero-title">🛍️ L\'Épicerie des Halles</div>', unsafe_allow_html=True)
 st.write("")
 
-c1, c2 = st.columns(2)
-with c1:
+# Colonnes pour les sélecteurs (les labels sont maintenant noirs)
+col1, col2 = st.columns(2)
+with col1:
     zone = st.selectbox("📍 Commune de livraison", ["Ciboure", "Saint-Jean-de-Luz", "Guéthary", "Ahetze", "Bidart"], index=1)
-with c2:
+with col2:
     horaire = st.selectbox("🕐 Créneau souhaité", ["Mardi matin (8h-10h)", "Vendredi matin (8h-10h)", "Vendredi soir (17h-19h)"])
 
 st.write("---")
@@ -128,7 +139,6 @@ for cat, pids in categories.items():
                 st.markdown(f"<div style='color:#065F46; font-weight:900; font-size:0.75rem; text-transform:uppercase;'>{p['shop']}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='product-name'>{p['name']}</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='product-desc'>{p['description']}</div>", unsafe_allow_html=True)
-                # Correction contraste ici
                 st.markdown(f"<div class='product-meta'><span style='color:var(--rouge-basque); font-size:1.1rem;'>{p['price']:.2f}€</span> ({p['unit']})</div>", unsafe_allow_html=True)
             
             with c_btn:
@@ -186,4 +196,9 @@ with st.sidebar:
 # --- BADGE MOBILE ---
 total_q = sum(st.session_state.cart.values())
 if total_q > 0:
-    st.markdown(f'<div class="floating-cart">🛒 {total_q} ARTICLES<br><small style="font-weight:normal; font-size:0.7rem;">Ouvrir menu ↖️</small></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="floating-cart">
+        🛒 {total_q} ARTICLE{'S' if total_q > 1 else ''}
+        <small>Ouvrir menu ↖️</small>
+    </div>
+    """, unsafe_allow_html=True)

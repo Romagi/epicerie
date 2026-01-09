@@ -78,7 +78,7 @@ st.markdown("""
             z-index: 9999; border: 2px solid white; text-align: center;
         }
         .floating-cart small {
-            color: #EEEEEE !important;
+            color: #FFFFFF !important;
             display: block;
             font-size: 0.7rem;
         }

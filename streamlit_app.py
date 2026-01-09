@@ -27,17 +27,20 @@ st.markdown("""
         background-color: var(--fond-creme);
     }
 
-    /* Sidebar - Fond blanc pour contraste maximal */
+    /* Sidebar - Fond foncé */
     [data-testid="stSidebar"] {
-        background: var(--sidebar-bg);
-        border-left: 1px solid var(--bordure);
+        background: #1F2937;
+        border-left: 1px solid #374151;
     }
     [data-testid="stSidebar"] * {
-        color: var(--gris-texte) !important;
+        color: #FFFFFF !important;
     }
     [data-testid="stSidebar"] h2 {
-        color: var(--rouge-basque) !important;
+        color: #FFFFFF !important;
         font-size: 1.4rem !important;
+    }
+    [data-testid="stSidebar"] hr {
+        border-color: #4B5563 !important;
     }
 
     /* Header Principal - Compact */
@@ -66,6 +69,10 @@ st.markdown("""
         color: var(--gris-texte) !important;
         font-weight: 700 !important;
         font-size: 1rem !important;
+    }
+    .streamlit-expanderHeader:hover {
+        background-color: #E5E7EB !important;
+        color: var(--gris-texte) !important;
     }
     
     .shop-badge {
@@ -147,30 +154,30 @@ st.markdown("""
 
     /* Panier Sidebar - Contraste maximal */
     .cart-item {
-        background: #F3F4F6;
-        border: 2px solid var(--bordure);
+        background: #374151;
+        border: 1px solid #4B5563;
         padding: 10px;
         border-radius: 6px;
         margin-bottom: 10px;
     }
     .cart-item-name {
-        color: var(--gris-texte);
+        color: #FFFFFF;
         font-weight: 700;
         font-size: 0.9rem;
     }
     .cart-item-shop {
-        color: #6B7280;
+        color: #D1D5DB;
         font-size: 0.75rem;
     }
     .cart-item-price {
-        color: var(--rouge-basque);
+        color: #10B981;
         font-weight: 800;
         font-size: 0.95rem;
     }
     
     .cart-summary {
-        background: #F9FAFB;
-        border: 2px solid var(--bordure);
+        background: #374151;
+        border: 1px solid #4B5563;
         padding: 12px;
         border-radius: 6px;
         margin: 15px 0;
@@ -179,7 +186,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         margin: 6px 0;
-        color: var(--gris-texte);
+        color: #FFFFFF;
         font-size: 0.9rem;
     }
     .cart-total {
@@ -437,7 +444,7 @@ Je souhaite commander :
 
 Merci de confirmer la disponibilité !"""
         
-        wa_url = f"https://wa.me/33660917216?text={urllib.parse.quote(message)}"
+        wa_url = f"https://wa.me/336660917216?text={urllib.parse.quote(message)}"
         
         st.markdown(f"""
         <a href="{wa_url}" target="_blank" style="text-decoration:none;">
